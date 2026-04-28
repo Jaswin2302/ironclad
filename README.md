@@ -83,8 +83,6 @@ The private key (`identity.txt`) is never committed to git.
 
 ## Philosophy
 
-## Philosophy
-
 Read the kernel directly. Write as little code as possible and understand every line of Rust and Go. No Docker, no cloud — just Linux, sockets, and binaries that work.
 
   
