@@ -1,0 +1,15 @@
+[Unit]
+Description=Ironclad Agent - bare-metal metrics collector
+After=network.target
+
+[Service]
+Type=simple
+User=jaswin23_
+ExecStart=/home/jaswin23_/ironclad/agent/target/release/agent
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
