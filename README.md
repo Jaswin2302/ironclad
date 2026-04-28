@@ -4,16 +4,11 @@ A bare-metal Linux fleet monitoring system. No Docker, no Kubernetes, no cloud.
 
 ## Architecture
 
-┌─────────────────────────────┐     Unix Socket      ┌──────────────────────────────┐
-│      ironclad-agent         │ ──────────────────► │    ironclad-controller        │
-│         (Rust)              │                      │         (Go)                  │
-│                             │                      │                               │
-│ • Reads /proc via sysinfo   │                      │ • Receives JSON metrics       │
-│ • Decrypts secrets w/ age   │                      │ • Sustained alerting engine   │
-│ • Serializes to JSON        │                      │ • Prometheus /metrics :9100   │
-│ • Streams over Unix socket  │                      │ • Multi-node hostname labels  │
-│ • Runs as systemd service   │                      │                               │
-└─────────────────────────────┘                      └──────────────────────────────┘
+The **agent** (Rust) runs on each monitored machine as a systemd service. It reads CPU and memory metrics directly from the Linux kernel, encrypts/decrypts secrets using age, and streams JSON over a Unix socket.
+
+The **controller** (Go) connects to the agent socket, receives live metrics, fires sustained alerts when thresholds are exceeded, and exposes a Prometheus-compatible `/metrics` endpoint on port 9100.
+
+**Communication:** Unix domain sockets — no HTTP, no network stack, no cloud.
 
 ## Stack
 
@@ -88,7 +83,9 @@ The private key (`identity.txt`) is never committed to git.
 
 ## Philosophy
 
-Minimal, understandable, close to the hardware. No abstractions you don't need. Owns the stack from kernel metrics to observability.
+## Philosophy
+
+Read the kernel directly. Write as little code as possible and understand every line of Rust and Go. No Docker, no cloud — just Linux, sockets, and binaries that work.
 
   
 
