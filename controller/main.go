@@ -23,6 +23,8 @@ type AlertState struct {
 
 func (a *AlertState) check(metrics Metrics) {
 	now := time.Now()
+
+	// CPU alert: sustained above 20% for 10 seconds
 	if metrics.CpuPercent > 80.0 {
 		if a.cpuHighSince == nil {
 			a.cpuHighSince = &now
@@ -33,6 +35,8 @@ func (a *AlertState) check(metrics Metrics) {
 	} else {
 		a.cpuHighSince = nil
 	}
+
+	// MEM alert: sustained above 90% for 10 seconds
 	if metrics.MemPercent > 90.0 {
 		if a.memHighSince == nil {
 			a.memHighSince = &now
@@ -48,16 +52,20 @@ func (a *AlertState) check(metrics Metrics) {
 func main() {
 	socketPath := "/tmp/ironclad.sock"
 	alerts := &AlertState{}
+
 	for {
 		fmt.Println("[ironclad-controller] Connecting to agent...")
+
 		conn, err := net.Dial("unix", socketPath)
 		if err != nil {
 			fmt.Printf("[ironclad-controller] Failed to connect: %v. Retrying in 2s...\n", err)
 			time.Sleep(2 * time.Second)
 			continue
 		}
+
 		fmt.Println("[ironclad-controller] Connected to agent")
 		scanner := bufio.NewScanner(conn)
+
 		for scanner.Scan() {
 			line := scanner.Text()
 			var metrics Metrics
@@ -65,6 +73,7 @@ func main() {
 				fmt.Printf("[ironclad-controller] Failed to parse: %v\n", err)
 				continue
 			}
+
 			fmt.Printf("[controller] ts=%d cpu=%.1f%% mem=%.1f%% (%dMB/%dMB)\n",
 				metrics.Timestamp,
 				metrics.CpuPercent,
@@ -72,8 +81,10 @@ func main() {
 				metrics.MemUsedMB,
 				metrics.MemTotalMB,
 			)
+
 			alerts.check(metrics)
 		}
+
 		fmt.Println("[ironclad-controller] Agent disconnected, reconnecting...")
 		conn.Close()
 	}
